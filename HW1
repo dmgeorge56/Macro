@@ -1,0 +1,68 @@
+---
+title: "Macro Economics HW 1"
+output: html_notebook
+---
+
+This document is for problem 6 of macro economics HW 1.
+Date: 1/24/25
+
+Problem 6: Plotting Economic Time Series Data
+
+```{r import data}
+
+usa <- read.csv("Downloads/usadata.csv", header=T)
+canada <- read.csv("Downloads/canadadata.csv", header=T)
+japan <- read.csv("Downloads/japandata.csv", header=T)
+skorea <- read.csv("Downloads/southkoreadata.csv", header=T)
+italy <- read.csv("Downloads/italydata.csv", header=T)
+
+```
+
+```{r clean data}
+
+##add column for country
+usa$country <- rep('usa')
+canada$country <- rep('canada')
+japan$country <- rep('japan')
+skorea$country <- rep('skorea')
+italy$country <- rep('italy')
+
+##match column names
+colnames(usa) <- c("date", "gdp", "country")
+colnames(canada) <- c("date", "gdp", "country")
+colnames(japan) <- c("date", "gdp", "country")
+colnames(skorea) <- c("date", "gdp", "country")
+colnames(italy) <- c("date", "gdp", "country")
+
+##add log gdp column
+usa$log <- log(usa$gdp)
+canada$log <- log(canada$gdp)
+japan$log <- log(japan$gdp)
+skorea$log <- log(skorea$gdp)
+italy$log <- log(italy$gdp)
+
+
+```
+
+```{r merge data frames}
+
+gdppercap <- rbind(usa, canada, japan, skorea, italy)
+
+```
+
+```{r plot}
+
+level <- ggplot(data=gdppercap, aes(x=date, y=gdp, group=country, color=country)) + 
+    geom_line() +
+    ggtitle("Level GDP Per Capita: 1960 - 2015") +
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+
+
+log <- ggplot(data=gdppercap, aes(x=date, y=log, group=country, color=country)) + 
+    geom_line() +
+    ggtitle("Log GDP Per Capita: 1960 - 2015") +
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+```
+
