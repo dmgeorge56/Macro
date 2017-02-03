@@ -1,0 +1,71 @@
+---
+title: "Macro Economics HW 2"
+output: html_notebook
+---
+
+This document is for problem 3 of macro economics HW 2.
+Date: 2/1/17
+
+```{r import data}
+
+pwt <- read.csv(file="/Users/Dana/Documents/Macro/hw2data_pwt.csv", header=T)
+
+```
+
+```{r specify variables you want to keep}
+
+#Use the following variables for your analysis: Y = cgdpe, L = pop, K = ck. These output and capital variables are measured in current PPPs, in units of ”current US output”. That way these numbers are all expressed in the same units and are comparable across countries. Other than year, and maybe country and/or countrycode you don’t really need any other variables. So you can safely drop the rest.
+
+pwt2 <- subset(pwt, select=c("countrycode","country","year","cgdpe", "pop","ck"))
+
+##remove rows with blank cells
+pwt3 <- pwt2[!is.na(pwt2$cgdpe), ]
+
+```
+
+```{r create tables from slide 11}
+
+##subset data to only look at 2007
+pwt2007 <- pwt3[(pwt3$year == "2007"), ]
+
+##subset data to only look at certain counties
+pwt2007c <- pwt2007[(pwt2007$country == "United States"|pwt2007$country =="Switzerland"|pwt2007$country =="Japan"|pwt2007$country =="Italy"|pwt2007$country =="Spain"|pwt2007$country =="United Kingdom"|pwt2007$country =="Brazil"|pwt2007$country =="China"|pwt2007$country =="South Africa"|pwt2007$country =="India"|pwt2007$country =="Burundi"), ]
+
+##find capital per person (kbar)
+pwt2007c$kpp <- with(pwt2007c, ck/pop)
+##find GDP per person (kbar^1/3)
+pwt2007c$ypp <- with(pwt2007c, cgdpe/pop)
+##find predicted GDP per person
+pwt2007c$pypp <- with(pwt2007c, kpp^(1/3))
+
+##take out some decimal places
+is.num <- sapply(pwt2007c, is.numeric)
+pwt2007c[is.num] <- lapply(pwt2007c[is.num], round, 2)
+
+```
+
+```{r create table}
+
+##reorder so income per person is in decending order
+pwt2007c2 <- with(pwt2007c, pwt2007c[order(-ypp),])
+
+##change column names for table format
+
+colnames(pwt2007c2) <- c("Country Code", "Country" ,"Year", "Y" , "L", "K", "Observed Captial Per Person, kbar", "Observed Y Per Person", "Predicted Y Per Person, kbar^1/3")
+
+##Create new df without y, l and k
+slide11 <- subset(pwt2007c2, select=c("Country","Year", "Observed Captial Per Person, kbar", "Observed Y Per Person", "Predicted Y Per Person, kbar^1/3"))
+
+##stargazer it up
+library(knitr)
+kable(slide11, format='html',row.names = F)
+```
+
+```{r plotly plot}
+
+colnames(slide11) <- c("Country","Year", "kbar", "oypp", "pypp")
+
+library(plotly)
+with(slide11, plot_ly(slide11, x = oypp, y = pypp, color=Country, alpha=1))
+
+```
