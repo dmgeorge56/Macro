@@ -6,12 +6,14 @@ output: html_notebook
 This document is for problem 3 of macro economics HW 2.
 Date: 2/1/17
 
+#1. Import/Clean Data{.tabset}
+##1.a Import
 ```{r import data}
 
 pwt <- read.csv(file="/Users/Dana/Documents/Macro/hw2data_pwt.csv", header=T)
 
 ```
-
+##1.b Clean
 ```{r specify variables you want to keep}
 
 #Use the following variables for your analysis: Y = cgdpe, L = pop, K = ck. These output and capital variables are measured in current PPPs, in units of ”current US output”. That way these numbers are all expressed in the same units and are comparable across countries. Other than year, and maybe country and/or countrycode you don’t really need any other variables. So you can safely drop the rest.
@@ -22,7 +24,8 @@ pwt2 <- subset(pwt, select=c("countrycode","country","year","cgdpe", "pop","ck")
 pwt3 <- pwt2[!is.na(pwt2$cgdpe), ]
 
 ```
-
+#2. Replicate Slide 11 and 12 {.tabset}
+##2.a Create table
 ```{r create tables from slide 11}
 
 ##subset data to only look at 2007
@@ -44,7 +47,7 @@ pwt2007c[is.num] <- lapply(pwt2007c[is.num], round, 2)
 
 ```
 
-```{r create table}
+```{r create table, slide 11}
 
 ##reorder so income per person is in decending order
 pwt2007c2 <- with(pwt2007c, pwt2007c[order(-ypp),])
@@ -58,14 +61,70 @@ slide11 <- subset(pwt2007c2, select=c("Country","Year", "Observed Captial Per Pe
 
 ##stargazer it up
 library(knitr)
-kable(slide11, format='html',row.names = F)
+kable(slide11, format='html',row.names = F, align = c('l','c','c','c','c'))
 ```
-
-```{r plotly plot}
+##2.b. Cleate Plot (slide 12)
+```{r plotly plot, slide 12}
 
 colnames(slide11) <- c("Country","Year", "kbar", "oypp", "pypp")
 
 library(plotly)
 with(slide11, plot_ly(slide11, x = oypp, y = pypp, color=Country, alpha=1))
+
+```
+#3 Replicate Slides 19 and 20 {.tabset}
+#3.a create table
+```{r create table from slide 19}
+
+##subset data to only look at 2007
+#pwt2007 <- pwt3[(pwt3$year == "2007"), ]
+
+##subset data to only look at certain counties
+#pwt2007c <- pwt2007[(pwt2007$country == "United States"|pwt2007$country =="Switzerland"|pwt2007$country =="Japan"|pwt2007$country =="Italy"|pwt2007$country =="Spain"|pwt2007$country =="United Kingdom"|pwt2007$country =="Brazil"|pwt2007$country =="China"|pwt2007$country =="South Africa"|pwt2007$country =="India"|pwt2007$country =="Burundi"), ]
+
+##make variables
+##Per capita Y
+pwt2007c2$ypp <- with(pwt2007c2, Y/L)
+##find predicted GDP per person (kbar^1/3)
+pwt2007c2$pypp <- with(pwt2007c2, (K/L)^(1/3))
+##implied TFP (abar) = Total Factor Productivity (TFP) is the portion of output not explained by the amount of inputs used in production. Its level is determined by how efficiently and intensely the inputs are utilized in production.
+#where TFP = The residual from solow model = gY − α ∗ gK − (1 − α) ∗ gL. The Solow residual accurately measures TFP growth if (i) the production function is neoclassical, (ii) there is perfect competition in factor markets, and (iii) the growth rates of the inputs are measured accurately.
+##Calculate by:
+##1. Y/K = capital productivity
+##2. Y/L = labor productivity
+##3. (Y/K)^1/3 * (Y/L)^2/3
+pwt2007c2$tfp <- with(pwt2007c2, ((Y/K)^(1/3)*(Y/L)^(2/3)))
+
+##take out some decimal places
+is.num <- sapply(pwt2007c2, is.numeric)
+pwt2007c2[is.num] <- lapply(pwt2007c2[is.num], round, 2)
+
+```
+
+```{r create table, slide 19}
+
+##reorder so income per person is in decending order
+pwt2007c3 <- with(pwt2007c2, pwt2007c2[order(-ypp),])
+
+##change column names for table format
+
+colnames(pwt2007c3) <- c("Country Code", "Country" ,"Year", "Y" , "L", "K", "Observed Captial Per Person, kbar", "Observed Y Per Person", "Predicted Y Per Person, kbar^1/3", "TFP, Abar","Per Capita Y","Predicted Y Per Person, kbar^1/3")
+
+##Create new df without y, l and k and other variables not in table on slide 19
+slide19 <- subset(pwt2007c3, select=c("Country","Year", "TFP, Abar","Per Capita Y","Predicted Y Per Person, kbar^1/3"))
+
+##kable it up
+library(knitr)
+kable(slide19, format='html',row.names = F, align= c('l','c','c','c','c'))
+
+```
+
+##3.b. Cleate Plot (slide 12)
+```{r plotly plot, slide 20}
+
+colnames(slide19) <- c("Country","Year", "tfp", "ypp", "pypp")
+
+library(plotly)
+with(slide19, plot_ly(slide19, x = ypp, y = tfp, color=Country, alpha=1))
 
 ```
